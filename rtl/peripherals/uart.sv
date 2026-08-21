@@ -54,22 +54,25 @@ module uart (
         if (!rst_n) begin
             baud_cnt   <= 16'd0;
             tx_bit_cnt <= 4'd0;
-            tx_shift   <= 10'h3FF;
+            tx_shift   <= 9'h1FF;
             tx_o       <= 1'b1;
             tx_rd_ptr  <= 4'd0;
         end else begin
             if (tx_bit_cnt == 4'd0) begin
                 if (tx_count != 5'd0) begin
-                    tx_shift   <= {1'b1, tx_fifo[tx_rd_ptr], 1'b0};
+                    tx_o       <= 1'b0; // Immediate Start Bit
+                    tx_shift   <= {1'b1, tx_fifo[tx_rd_ptr]};
                     tx_rd_ptr  <= tx_rd_ptr + 4'd1;
                     tx_bit_cnt <= 4'd10;
                     baud_cnt   <= (baud_div != 16'd0) ? baud_div : 16'd16;
+                end else begin
+                    tx_o       <= 1'b1;
                 end
             end else begin
                 if (baud_cnt == 16'd0) begin
                     baud_cnt   <= (baud_div != 16'd0) ? baud_div : 16'd16;
                     tx_o       <= tx_shift[0];
-                    tx_shift   <= {1'b1, tx_shift[9:1]};
+                    tx_shift   <= {1'b1, tx_shift[8:1]};
                     tx_bit_cnt <= tx_bit_cnt - 4'd1;
                 end else begin
                     baud_cnt <= baud_cnt - 16'd1;

@@ -70,13 +70,19 @@ module tb_systolic_array;
         act_in[0] = 8'sd3; #10;
         act_in[0] = 8'sd0;
 
-        // Propagate down the 8 rows
-        #100;
+        // Monitor the systolic output wave across the 8-row pipeline latency
+        logic signed [31:0] captured_val = 32'sd0;
+        for (int cycle = 0; cycle < 16; cycle++) begin
+            #10;
+            if (acc_out[0] == 32'sd6) begin
+                captured_val = acc_out[0];
+            end
+        end
         enable = 0;
 
         // PE[0,0] produced 3 * 2 = 6, which propagated down to acc_out[0]
-        if (acc_out[0] !== 32'sd6) begin
-            $display("[ERROR] Systolic Array column 0 output mismatch! Expected 6, Got %0d", acc_out[0]);
+        if (captured_val !== 32'sd6) begin
+            $display("[ERROR] Systolic Array column 0 output mismatch! Expected 6, Got %0d", captured_val);
             error_count++;
         end
 
